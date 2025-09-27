@@ -1,0 +1,106 @@
+.blocked-row {
+    background-color: #ffe6e6 !important;
+    /* light red for blocked tasks */
+}
+
+.project-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.button-group {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button-group button {
+    padding: 8px 16px;
+    font-size: 14px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.button-group button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.button-group button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.ag-theme-alpine .ag-header-cell-label {
+    justify-content: center;
+}
+
+/* ✅ IMPORTANT: don't force flex on cells — it breaks editors/focus */
+.ag-theme-alpine .ag-cell {
+    text-align: center; /* keeps simple text centered without harming editors */
+}
+/* if you want visual centering, center the wrapper instead */
+.ag-theme-alpine .ag-cell .ag-cell-wrapper {
+    justify-content: center;
+    align-items: center;
+}
+
+.dependencies-input {
+    width: 100%;
+    text-align: center;
+    padding: 4px 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.status-message {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.status-message.error {
+    color: red;
+}
+
+.status-message.loading {
+    color: #555;
+}
+
+.status-message.empty {
+    color: #777;
+}
+
+.grid-container {
+    height: 500px;
+    width: 100%;
+}
+
+.ag-theme-alpine {
+    font-size: 14px;
+}
+
+/* Container holding the dependency chips */
+.deps-chips {
+    display: flex;
+    flex-direction: column; /* 👈 Stack vertically */
+    align-items: center;
+    gap: 4px;
+    padding: 6px 0;
+}
+
+/* Each dependency shown as a chip */
+.chip-dep {
+    background-color: #eef2f6;
+    color: #333;
+    border: 1px solid #ccd;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    line-height: 1.5;
+}

@@ -1,0 +1,97 @@
+{
+  "tasks": [
+    {
+      "title": "My new task",
+      "assignee_id": 6,
+      "status": "done",
+      "priority": "medium",
+      "startDate": "2025-09-30",
+      "dueDate": "2025-10-01",
+      "dependencies": [],
+      "estimateHours": 3,
+      "notes": "test",
+      "id": 1
+    },
+    {
+      "title": "Integrate frontend UI",
+      "assignee_id": 3,
+      "status": "todo",
+      "priority": "medium",
+      "startDate": "2025-10-06",
+      "dueDate": "2025-10-10",
+      "dependencies": [
+        4,
+        1
+      ],
+      "estimateHours": 10,
+      "notes": "Connect React app with API",
+      "id": 3
+    },
+    {
+      "title": "Implement authentication module",
+      "assignee_id": 2,
+      "status": "in_progress",
+      "priority": "medium",
+      "startDate": "2025-09-28",
+      "dueDate": "2025-10-02",
+      "dependencies": [],
+      "estimateHours": 12,
+      "notes": "OAuth2 + JWT",
+      "id": 4
+    },
+    {
+      "title": "Set up CI/CD pipeline",
+      "assignee_id": 4,
+      "status": "blocked",
+      "priority": "high",
+      "startDate": "2025-09-29",
+      "dueDate": "2025-10-05",
+      "dependencies": [],
+      "estimateHours": 6,
+      "notes": "GitHub Actions",
+      "id": 5
+    },
+    {
+      "title": "Task 6 updated",
+      "assignee_id": 6,
+      "status": "todo",
+      "priority": "medium",
+      "startDate": "2025-10-12",
+      "dueDate": "2025-10-14",
+      "dependencies": [
+        4,
+        5
+      ],
+      "estimateHours": 9,
+      "notes": "Depends on Task 4 and 5",
+      "id": 6
+    },
+    {
+      "title": "Task 6 update",
+      "assignee_id": 51,
+      "status": "blocked",
+      "priority": "low",
+      "startDate": "2025-10-15",
+      "dueDate": "2025-10-18",
+      "dependencies": [
+        6
+      ],
+      "estimateHours": 12,
+      "notes": "",
+      "id": 7
+    },
+    {
+      "title": "Implement authentication module",
+      "assignee_id": 2,
+      "status": "in_progress",
+      "priority": "high",
+      "startDate": "2025-06-10",
+      "dueDate": "2025-10-10",
+      "dependencies": [],
+      "estimateHours": 12,
+      "notes": "OAuth2 + JWT",
+      "id": 8
+    }
+  ],
+  "users": []
+}
