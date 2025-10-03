@@ -1,7 +1,7 @@
 {
   "tasks": [
     {
-      "title": "My new task",
+      "title": "My fassds",
       "assignee_id": 6,
       "status": "done",
       "priority": "medium",
@@ -15,8 +15,8 @@
     {
       "title": "Integrate frontend UI",
       "assignee_id": 3,
-      "status": "todo",
-      "priority": "medium",
+      "status": "in_progress",
+      "priority": "low",
       "startDate": "2025-10-06",
       "dueDate": "2025-10-10",
       "dependencies": [
@@ -30,7 +30,7 @@
     {
       "title": "Implement authentication module",
       "assignee_id": 2,
-      "status": "in_progress",
+      "status": "done",
       "priority": "medium",
       "startDate": "2025-09-28",
       "dueDate": "2025-10-02",
@@ -42,7 +42,7 @@
     {
       "title": "Set up CI/CD pipeline",
       "assignee_id": 4,
-      "status": "blocked",
+      "status": "done",
       "priority": "high",
       "startDate": "2025-09-29",
       "dueDate": "2025-10-05",
@@ -69,7 +69,7 @@
     {
       "title": "Task 6 update",
       "assignee_id": 51,
-      "status": "blocked",
+      "status": "todo",
       "priority": "low",
       "startDate": "2025-10-15",
       "dueDate": "2025-10-18",
@@ -79,18 +79,6 @@
       "estimateHours": 12,
       "notes": "",
       "id": 7
-    },
-    {
-      "title": "Implement authentication module",
-      "assignee_id": 2,
-      "status": "in_progress",
-      "priority": "high",
-      "startDate": "2025-06-10",
-      "dueDate": "2025-10-10",
-      "dependencies": [],
-      "estimateHours": 12,
-      "notes": "OAuth2 + JWT",
-      "id": 8
     }
   ],
   "users": []

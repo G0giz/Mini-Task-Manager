@@ -1,3 +1,4 @@
+// server.js (same logic, clearer variable names)
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -10,120 +11,171 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // --- Validation ---
-function validateTaskInput(body, existingTasks = []) {
-    const { id, title, startDate, dueDate, dependencies = [] } = body;
+function validateTaskInput(requestBody, existingTasks = []) {
+    const {
+        id: taskIdFromBody,
+        title,
+        startDate,
+        dueDate,
+        dependencies = [],
+    } = requestBody;
+
+    // basic field checks
     if (!title || title.length < 3 || title.length > 120) return 'Title must be 3-120 chars';
     if (startDate && dueDate && new Date(startDate) > new Date(dueDate)) return 'Start date > due date';
     if (!Array.isArray(dependencies)) return 'Dependencies must be an array';
-    if (id && dependencies.includes(id)) return 'Task cannot depend on itself';
 
-    const existingIds = new Set(existingTasks.map(t => t.id));
-    for (let depId of dependencies) {
-        if (!existingIds.has(depId)) return `Dependency task ${depId} does not exist`;
+    // self dependency
+    if (taskIdFromBody && dependencies.includes(taskIdFromBody)) return 'Task cannot depend on itself';
+
+    // all dependencies must exist
+    const existingTaskIds = new Set(existingTasks.map(task => task.id));
+    for (const dependencyId of dependencies) {
+        if (!existingTaskIds.has(dependencyId)) {
+            return `Dependency task ${dependencyId} does not exist`;
+        }
     }
 
-    return null;
+    return null; // valid
 }
 
 // --- CRUD Routes ---
 // Get all tasks
 app.get('/tasks', (req, res) => {
-    const db = readDB();
-    res.json(db.tasks);
+    const database = readDB();
+    res.json(database.tasks);
 });
 
 // Create task
 app.post('/tasks', (req, res) => {
-    const db = readDB();
-    const error = validateTaskInput(req.body, db.tasks);
-    if (error) return res.status(400).json({ error });
+    const database = readDB();
+
+    const validationError = validateTaskInput(req.body, database.tasks);
+    if (validationError) return res.status(400).json({ error: validationError });
 
     const newTask = {
         ...req.body,
-        id: db.tasks.length ? Math.max(...db.tasks.map(t => t.id)) + 1 : 1,
+        id: database.tasks.length ? Math.max(...database.tasks.map(task => task.id)) + 1 : 1,
         dependencies: req.body.dependencies || []
     };
 
-    db.tasks.push(newTask);
-    writeDB(db);
+    database.tasks.push(newTask);
+    writeDB(database);
     res.json(newTask);
 });
 
+
 // Update task
 app.put('/tasks/:id', (req, res) => {
+    // Read DB (json file with tasks)
     const db = readDB();
     const taskId = Number(req.params.id);
+
+    // Take the incoming body and make sure the ID stays the same
     const updatedTask = { ...req.body, id: taskId };
 
-    const error = validateTaskInput(updatedTask, db.tasks);
-    if (error) return res.status(400).json({ error });
-
-    // Dependencies exist
-    const allTaskIds = db.tasks.map(t => t.id);
-    if (!updatedTask.dependencies.every(depId => allTaskIds.includes(depId))) {
-        return res.status(400).json({ error: 'Some dependencies do not exist' });
+    // Check if task exists
+    const idx = db.tasks.findIndex(t => t.id === taskId);
+    if (idx === -1) {
+        return res.status(404).json({ error: 'Task not found' });
     }
 
-    // Self-cycle check
-    if (updatedTask.dependencies.includes(taskId)) {
+    // Check dependencies exist
+    const allTaskIds = db.tasks.map(t => t.id);
+    for (const depId of updatedTask.dependencies || []) {
+        if (!allTaskIds.includes(depId)) {
+            return res.status(400).json({ error: 'Some dependencies do not exist' });
+        }
+    }
+
+    // Check self dependency
+    if ((updatedTask.dependencies || []).includes(taskId)) {
         return res.status(400).json({ error: 'Task cannot depend on itself' });
     }
 
-    // Detect cycles
+    // Simple cycle check (no recursion, just loop)
+    // Walk through dependencies in a queue until empty
+    // If we come back to the same task → cycle
+    const queue = [...(updatedTask.dependencies || [])];
     const visited = new Set();
-    const stack = new Set();
-    const visit = (id) => {
-        if (stack.has(id)) return true;
-        if (visited.has(id)) return false;
-        visited.add(id);
-        stack.add(id);
-        const t = db.tasks.find(x => x.id === id);
-        for (let depId of t?.dependencies || []) {
-            if (visit(depId)) return true;
-        }
-        stack.delete(id);
-        return false;
-    };
-    if (visit(taskId)) return res.status(400).json({ error: 'Dependencies create a cycle' });
 
-    // Start date >= max(dependency.dueDate)
-    if (updatedTask.startDate && updatedTask.dependencies.length) {
-        const maxDue = Math.max(...updatedTask.dependencies.map(depId => {
-            const dep = db.tasks.find(t => t.id === depId);
-            return dep?.dueDate ? new Date(dep.dueDate).getTime() : 0;
-        }));
-        if (new Date(updatedTask.startDate).getTime() < maxDue) {
-            return res.status(400).json({ error: 'startDate cannot be before max(dependency.dueDate)' });
+    while (queue.length > 0) {
+        const depId = queue.shift();
+        if (depId === taskId) {
+            return res.status(400).json({ error: 'Dependencies create a cycle' });
+        }
+        if (!visited.has(depId)) {
+            visited.add(depId);
+            const depTask = db.tasks.find(t => t.id === depId);
+            if (depTask) {
+                queue.push(...(depTask.dependencies || []));
+            }
         }
     }
 
-    // Status validation
+    // Check start date vs dependency due dates
+    if (updatedTask.startDate && (updatedTask.dependencies || []).length > 0) {
+        let maxDueTime = 0;
+        for (const depId of updatedTask.dependencies) {
+            const dep = db.tasks.find(t => t.id === depId);
+            if (dep?.dueDate) {
+                const time = new Date(dep.dueDate).getTime();
+                if (time > maxDueTime) maxDueTime = time;
+            }
+        }
+        if (new Date(updatedTask.startDate).getTime() < maxDueTime) {
+            return res.status(400).json({ error: 'startDate cannot be before dependencies' });
+        }
+    }
+
+    // Status check: in_progress/done only if all deps are done
     if (['in_progress', 'done'].includes(updatedTask.status)) {
-        const allDone = updatedTask.dependencies.every(depId => {
+        let allDepsDone = true;
+        for (const depId of updatedTask.dependencies || []) {
             const dep = db.tasks.find(t => t.id === depId);
-            return dep.status === 'done';
-        });
-        if (!allDone) return res.status(400).json({ error: 'Cannot set in_progress/done unless all dependencies are done' });
+            if (dep?.status !== 'done') {
+                allDepsDone = false;
+                break;
+            }
+        }
+        if (!allDepsDone) {
+            return res.status(400).json({ error: 'Cannot set in_progress/done unless all dependencies are done' });
+        }
     }
 
-    // Update task
-    const idx = db.tasks.findIndex(t => t.id === taskId);
-    if (idx === -1) return res.status(404).json({ error: 'Task not found' });
+    // Save back to DB
     db.tasks[idx] = updatedTask;
     writeDB(db);
+
     res.json(updatedTask);
 });
 
 // Delete task
 app.delete('/tasks/:id', (req, res) => {
-    const db = readDB();
-    const id = Number(req.params.id);
-    const isDependedOn = db.tasks.some(t => t.dependencies.includes(id));
-    if (isDependedOn) return res.status(400).json({ error: 'Other tasks depend on this task' });
+    const database = readDB();
+    const taskId = +req.params.id;
 
-    db.tasks = db.tasks.filter(t => t.id !== id);
-    writeDB(db);
+    let isReferencedByOthers = false;
+    for (const task of database.tasks) {
+        if (task.dependencies.includes(taskId)) {
+            isReferencedByOthers = true;
+            break;
+        }
+    }
+
+    if (isReferencedByOthers) {
+        return res.status(400).json({ error: 'Other tasks depend on this task' });
+    }
+
+    database.tasks = database.tasks.filter(task => task.id !== taskId);
+    writeDB(database);
     res.json({ deleted: true });
 });
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+});
+
+
+
